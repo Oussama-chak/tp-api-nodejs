@@ -1,6 +1,6 @@
 // app.js — définit l'application, ne démarre rien
 const express = require('express');
-const etudiantRoutes = require('./routes/etudiantRoutes');
+const etudiantRoutes = require('./routers/etudiantRoutes');
 
 const app = express();
 app.use(express.json());
