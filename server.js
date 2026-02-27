@@ -2,6 +2,16 @@
 // IMPORTS
 // ============================================
 // Serveur Express principal - Application de gestion des étudiants
+// server.js — démarre l'application
+const app = require('./app');
+const connectDB = require('./config/database');
+require('dotenv').config();
+
+const PORT = process.env.PORT || 3000;
+
+connectDB().then(() => {
+  app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
+});
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
@@ -73,7 +83,6 @@ app.use((req, res) => {
 // DÉMARRAGE DU SERVEUR
 // ============================================
 
-const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`
