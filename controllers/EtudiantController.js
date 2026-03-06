@@ -1,4 +1,5 @@
 const Etudiant = require('../models/Etudiant');
+const mongoose = require('mongoose');
 
 // ============================================
 // CREATE - Créer un nouvel étudiant
@@ -8,53 +9,27 @@ const Etudiant = require('../models/Etudiant');
 // de la requête et les enregistre dans la base de données. 
 
 exports.createEtudiant = async (req, res) => {
-    try {
-        // Étape 1: Récupérer les données envoyées par le client
-        // req.body contient les données JSON envoyées
-        console.log('📥 Données reçues:', req.body);
-        
-        // Vérifier s'il existe déjà un étudiant avec le même nom ET prénom
-        const { nom, prenom } = req.body;
-        if (nom && prenom) {
-            const existing = await Etudiant.findOne({ nom: nom, prenom: prenom });
-            if (existing) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Un étudiant avec le même nom et prénom existe déjà'
-                });
-            }
-        }
+  try {
+    const { nom, prenom, moyenne } = req.body;
 
-        // Étape 2: Créer l'étudiant dans la base de données
-        // Mongoose valide automatiquement les données selon le schéma
-        const etudiant = await Etudiant.create(req.body);
-
-        // Étape 3: Renvoyer une réponse de succès (code 201 = Created)
-        res.status(201).json({
-            success: true,
-            message: 'Étudiant créé avec succès',
-            data: etudiant
-        });
-        
-    } catch (error) {
-        // Gestion des erreurs
-        
-        // Erreur de doublon (email déjà existant)
-        if (error.code === 11000) {
-            return res.status(400).json({
-                success: false,
-                message: 'Cet email existe déjà'
-            });
-        }
-        
-        // Autres erreurs (validation, etc.)
-        res.status(400).json({
-            success: false,
-            message: 'Données invalides',
-            error: error.message
-        });
+    if (!nom || !prenom) {
+      return res.status(400).json({ message: 'Le nom et le prénom sont obligatoires' });
     }
+    if (moyenne === undefined || typeof moyenne !== 'number') {
+      return res.status(400).json({ message: 'La moyenne doit être un nombre' });
+    }
+    if (moyenne < 0 || moyenne > 20) {
+      return res.status(400).json({ message: 'La moyenne doit être comprise entre 0 et 20' });
+    }
+
+    const etudiant = new Etudiant(req.body);
+    await etudiant.save();
+    res.status(201).json({ success: true, data: etudiant });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
 };
+
 
 // ============================================
 // READ ALL - Récupérer tous les étudiants
@@ -93,10 +68,13 @@ exports.getAllEtudiants = async (req, res) => {
 // Exemple:  GET /api/etudiants/507f1f77bcf86cd799439011
 
 exports.getEtudiantById = async (req, res) => {
-    try {
+    try { 
         // Étape 1: Récupérer l'ID depuis les paramètres de l'URL
         // req.params contient les paramètres de l'URL
         console.log('🔍 Recherche de l\'ID:', req.params.id);
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'ID invalide' });
+    }
         
         // Étape 2: Chercher l'étudiant par son ID
         const etudiant = await Etudiant.findById(req.params.id);
